@@ -1,0 +1,11 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/SeatPeek.Cineplexx.Rs.Api/SeatPeek.Cineplexx.Rs.Api.csproj" />
+    <Project Path="src/SeatPeek.Cineplexx.Rs.Core/SeatPeek.Cineplexx.Rs.Core.csproj" />
+    <Project Path="src/SeatPeek.Cineplexx.Rs.Web/SeatPeek.Cineplexx.Rs.Web.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/SeatPeek.Cineplexx.Rs.Api.Tests/SeatPeek.Cineplexx.Rs.Api.Tests.csproj" />
+    <Project Path="tests/SeatPeek.Cineplexx.Rs.Core.Tests/SeatPeek.Cineplexx.Rs.Core.Tests.csproj" />
+  </Folder>
+</Solution>

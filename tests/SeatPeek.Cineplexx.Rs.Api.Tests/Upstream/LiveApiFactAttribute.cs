@@ -1,4 +1,4 @@
-namespace SeatPeek.Cineplexx.Rs.Api.Tests;
+namespace SeatPeek.Cineplexx.Rs.Api.Tests.Upstream;
 
 [AttributeUsage(AttributeTargets.Method)]
 public sealed class LiveApiFactAttribute : FactAttribute

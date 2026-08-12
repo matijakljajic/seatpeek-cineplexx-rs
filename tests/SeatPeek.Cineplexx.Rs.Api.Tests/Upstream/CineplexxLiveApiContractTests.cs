@@ -2,7 +2,7 @@ using System.Globalization;
 using System.Net;
 using System.Text.Json;
 
-namespace SeatPeek.Cineplexx.Rs.Api.Tests;
+namespace SeatPeek.Cineplexx.Rs.Api.Tests.Upstream;
 
 public sealed class CineplexxLiveApiContractTests
 {
@@ -19,6 +19,7 @@ public sealed class CineplexxLiveApiContractTests
         using var locationsResponse = await GetJsonAsync(client, "v1/locations");
         using var cinemasResponse = await GetJsonAsync(client, "v1/cinemas");
         var cinema = SelectCinema(locationsResponse.RootElement, cinemasResponse.RootElement);
+        AssertCinemaSummary(cinema);
         var cinemaId = StringProperty(cinema, "id");
 
         using var cinemaResponse = await GetJsonAsync(client, $"v1/cinemas/{cinemaId}");
@@ -50,9 +51,7 @@ public sealed class CineplexxLiveApiContractTests
         var locationCinemaIds = Array(locationsResponse).EnumerateArray()
             .Select(location =>
             {
-                Object(location);
-                NumberProperty(location, "id");
-                StringProperty(location, "name");
+                AssertLocation(location);
                 return ArrayProperty(location, "items").EnumerateArray()
                     .Select(value => value.GetInt32().ToString(CultureInfo.InvariantCulture));
             })
@@ -71,11 +70,38 @@ public sealed class CineplexxLiveApiContractTests
         return cinema;
     }
 
+    private static void AssertLocation(JsonElement location)
+    {
+        Object(location);
+        NumberProperty(location, "id");
+        StringProperty(location, "name");
+        Assert.All(ArrayProperty(location, "items").EnumerateArray(), value =>
+            Assert.Equal(JsonValueKind.Number, value.ValueKind));
+    }
+
+    private static void AssertCinemaSummary(JsonElement cinema)
+    {
+        Object(cinema);
+        StringProperty(cinema, "id");
+        StringProperty(cinema, "name");
+        OptionalStringProperty(cinema, "cinemaUrlName");
+    }
+
     private static void AssertCinema(JsonElement cinema, string cinemaId)
     {
         Object(cinema);
         Assert.Equal(cinemaId, StringProperty(cinema, "id"));
         StringProperty(cinema, "name");
+        OptionalStringProperty(cinema, "cinemaUrlName");
+        OptionalStringProperty(cinema, "address1");
+        OptionalStringProperty(cinema, "address2");
+
+        if (cinema.TryGetProperty("geo", out var geo) && geo.ValueKind != JsonValueKind.Null)
+        {
+            Object(geo);
+            NumericProperty(geo, "latitude");
+            NumericProperty(geo, "longitude");
+        }
     }
 
     private static async Task<LiveApiObservation> FindWorkingSessionAsync(
@@ -154,8 +180,10 @@ public sealed class CineplexxLiveApiContractTests
 
         NumberProperty(session, "screenNumber");
         TechnologyGroups(ArrayProperty(session, "technologies"));
-        var available = NumberProperty(session, "seatsAvailable");
-        Assert.InRange(available, 0, NumberProperty(session, "seatsTotal"));
+        // TODO: Derive availability from seat plans when the public client implements seat-plan support.
+        // Cineplexx's aggregate values are useful hints but can be internally inconsistent.
+        NumberProperty(session, "seatsAvailable");
+        NumberProperty(session, "seatsTotal");
         Assert.All(ArrayProperty(session, "sessionAttributesNames").EnumerateArray(), ObjectString);
         KindProperty(session, "allowTicketSales", JsonValueKind.True, JsonValueKind.False);
         StringProperty(scheduledFilm, "title");
@@ -185,6 +213,7 @@ public sealed class CineplexxLiveApiContractTests
         {
             NumberProperty(position, property);
         }
+
     }
 
     private static async Task<JsonDocument> GetJsonAsync(HttpClient client, string path)
@@ -231,8 +260,19 @@ public sealed class CineplexxLiveApiContractTests
     private static string StringProperty(JsonElement value, string property) =>
         KindProperty(value, property, JsonValueKind.String).GetString()!;
 
+    private static void OptionalStringProperty(JsonElement value, string property)
+    {
+        if (value.TryGetProperty(property, out var result))
+        {
+            Assert.Contains(result.ValueKind, new[] { JsonValueKind.String, JsonValueKind.Null });
+        }
+    }
+
     private static int NumberProperty(JsonElement value, string property) =>
         KindProperty(value, property, JsonValueKind.Number).GetInt32();
+
+    private static double NumericProperty(JsonElement value, string property) =>
+        KindProperty(value, property, JsonValueKind.Number).GetDouble();
 
     private static void ObjectString(JsonElement value) => Assert.Equal(JsonValueKind.String, value.ValueKind);
 
@@ -242,4 +282,5 @@ public sealed class CineplexxLiveApiContractTests
             Assert.Equal(JsonValueKind.Array, group.ValueKind);
             Assert.All(group.EnumerateArray(), ObjectString);
         });
+
 }

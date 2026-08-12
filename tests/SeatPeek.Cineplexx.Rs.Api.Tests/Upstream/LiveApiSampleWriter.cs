@@ -3,7 +3,7 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
 
-namespace SeatPeek.Cineplexx.Rs.Api.Tests;
+namespace SeatPeek.Cineplexx.Rs.Api.Tests.Upstream;
 
 internal static class LiveApiSampleWriter
 {

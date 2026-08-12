@@ -163,8 +163,10 @@ paths:
       operationId: getSession
       summary: Get screening details
       description: |
-        Returns details for one screening, including aggregate seat
-        availability and associated film information.
+        Returns details for one screening, including reported aggregate seat
+        availability and associated film information. The aggregate counts are
+        a convenience hint and have been observed to be internally
+        inconsistent; use the seat plan when accurate availability matters.
 
         To obtain a current `sessionKey`:
 
@@ -200,9 +202,10 @@ paths:
         2. Call `GET /v1/sessions/{sessionKey}`.
         3. Copy `session.sessionId` from the response.
 
-        Session metadata already contains `seatsAvailable` and `seatsTotal`.
-        This endpoint is only necessary when individual seats need to be
-        inspected.
+        Session metadata contains `seatsAvailable` and `seatsTotal` as a
+        convenience hint, but those aggregate values have been observed to be
+        internally inconsistent. Request the seat plan when accurate
+        availability or occupancy is required.
       parameters:
         - $ref: "#/components/parameters/CinemaId"
         - $ref: "#/components/parameters/SessionId"
@@ -425,11 +428,11 @@ components:
         seatsAvailable:
           type: integer
           minimum: 0
-          description: Number of seats currently reported as available.
+          description: Reported available-seat count. It is not guaranteed to be consistent with `seatsTotal`.
         seatsTotal:
           type: integer
           minimum: 0
-          description: Total number of seats reported for the screening.
+          description: Reported total-seat count. It is not guaranteed to be consistent with `seatsAvailable`.
         screenName:
           type: string
           description: Human-readable auditorium/screen name when present.

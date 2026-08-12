@@ -1,0 +1,20 @@
+name: Refresh Cineplexx API samples and Wiki examples
+
+run-name: Validate API, then refresh samples and Wiki examples by @${{ github.actor }}
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: refresh-live-cineplexx-api-samples
+  cancel-in-progress: false
+
+jobs:
+  refresh-samples:
+    name: Validate API, then update samples and Wiki examples
+    uses: ./.github/workflows/live-api-contract-runner.yml
+    with:
+      refresh: true

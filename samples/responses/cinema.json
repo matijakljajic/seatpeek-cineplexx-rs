@@ -1,0 +1,11 @@
+{
+  "id": "1111",
+  "name": "CINEPLEXX 4D DELTA CITY",
+  "cinemaUrlName": "CINEPLEXX-4D-DELTA-CITY",
+  "address1": "Delta City, 16 Jurija Gagarina",
+  "address2": "RS-11000 Beograd",
+  "geo": {
+    "latitude": 44.8054287,
+    "longitude": 20.4052587
+  }
+}

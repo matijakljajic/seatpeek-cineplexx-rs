@@ -1,0 +1,33 @@
+{
+  "scheduledFilm": {
+    "id": "1111-HO00019535",
+    "scheduledFilmId": "HO00019535",
+    "cinemaId": "1111",
+    "title": "Vajana",
+    "duration": "116",
+    "slug": "vajana"
+  },
+  "session": {
+    "id": "1111-70992",
+    "sessionId": "70992",
+    "cinemaId": "1111",
+    "movieId": "HO00019535",
+    "showtime": "2026-08-12T16:30:00\u002B02:00",
+    "status": "grey",
+    "seatsAvailable": 95,
+    "seatsTotal": 99,
+    "screenName": "Sala 1",
+    "screenNumber": 1,
+    "sessionAttributesNames": [
+      "2D"
+    ],
+    "allowTicketSales": true,
+    "technologies": [
+      [
+        "2D",
+        "SINH"
+      ],
+      []
+    ]
+  }
+}

@@ -1,0 +1,43 @@
+[
+  {
+    "date": "2026-08-12T00:00:00+02:00",
+    "sessions": [
+      {
+        "id": "1111-70992",
+        "cinemaId": "1111",
+        "movieId": "HO00019535",
+        "sessionId": "70992",
+        "screenName": "Sala 1",
+        "screenNumber": 1,
+        "technologies": [
+          [
+            "2D",
+            "SINH"
+          ],
+          []
+        ],
+        "showtime": "2026-08-12T16:30:00+02:00",
+        "isAllocatedSeating": true,
+        "status": "grey"
+      },
+      {
+        "id": "1111-70984",
+        "cinemaId": "1111",
+        "movieId": "HO00019423",
+        "sessionId": "70984",
+        "screenName": "Sala 4 MX4D",
+        "screenNumber": 4,
+        "technologies": [
+          [
+            "3D",
+            "MX4D"
+          ],
+          []
+        ],
+        "showtime": "2026-08-12T15:45:00+02:00",
+        "isAllocatedSeating": true,
+        "status": "grey"
+      }
+    ]
+  }
+]

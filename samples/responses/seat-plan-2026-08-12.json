@@ -1,0 +1,112 @@
+{
+  "rowsMax": 13,
+  "seatPlanSaved": "0",
+  "rows": [
+    {
+      "physicalName": "H",
+      "number": 2,
+      "areaCategoryCode": "0000000001",
+      "description": "Sala 1",
+      "right": 21.8,
+      "bottom": 93.085,
+      "height": 6.917,
+      "columnCount": 13,
+      "seats": [
+        {
+          "columnIndex": 1,
+          "statusCalculated": 0,
+          "doubleSeatId": "",
+          "position": {
+            "rowIndex": 5,
+            "columnIndex": 1,
+            "areaNumber": 2,
+            "columnIndexVista": 1,
+            "columnIndexRender": 1
+          },
+          "id": "1",
+          "status": 0,
+          "seatStyle": 0,
+          "seatsInGroup": [],
+          "originalStatus": 0,
+          "seatIconId": 0,
+          "seatImprovedIconId": 0,
+          "areaCategoryCode": "0000000001",
+          "rowName": "H",
+          "normalizedRowIndex": 0,
+          "rowRight": 21.8,
+          "normalizedColumnIndex": 0
+        },
+        {
+          "columnIndex": 4,
+          "statusCalculated": 3,
+          "doubleSeatId": "",
+          "position": {
+            "rowIndex": 5,
+            "columnIndex": 4,
+            "areaNumber": 2,
+            "columnIndexVista": 4,
+            "columnIndexRender": 4
+          },
+          "id": "R1",
+          "status": 3,
+          "seatStyle": 0,
+          "seatsInGroup": [],
+          "originalStatus": 3,
+          "seatIconId": 39,
+          "seatImprovedIconId": 39,
+          "areaCategoryCode": "0000000001",
+          "rowName": "H",
+          "normalizedRowIndex": 0,
+          "rowRight": 21.8,
+          "normalizedColumnIndex": 3
+        }
+      ]
+    },
+    {
+      "physicalName": "G",
+      "number": 2,
+      "areaCategoryCode": "0000000001",
+      "description": "Sala 1",
+      "right": 21.8,
+      "bottom": 86.168,
+      "height": 6.917,
+      "columnCount": 13,
+      "seats": [
+        {
+          "columnIndex": 0,
+          "statusCalculated": 0,
+          "doubleSeatId": "",
+          "position": {
+            "rowIndex": 4,
+            "columnIndex": 0,
+            "areaNumber": 2,
+            "columnIndexVista": 0,
+            "columnIndexRender": 0
+          },
+          "id": "1",
+          "status": 0,
+          "seatStyle": 0,
+          "seatsInGroup": [],
+          "originalStatus": 0,
+          "seatIconId": 0,
+          "seatImprovedIconId": 0,
+          "areaCategoryCode": "0000000001",
+          "rowName": "G",
+          "normalizedRowIndex": 1,
+          "rowRight": 21.8,
+          "normalizedColumnIndex": 0
+        }
+      ]
+    }
+  ],
+  "icons": [
+    {
+      "id": 0,
+      "imageUrl": "/static/area_categories/free.svg"
+    },
+    {
+      "id": 39,
+      "imageUrl": "/static/area_categories/wheelchair.svg"
+    }
+  ]
+}

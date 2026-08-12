@@ -1,0 +1,16 @@
+name: Check live Cineplexx API contract (read-only)
+
+run-name: Read-only live API contract check by @${{ github.actor }}
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check-contract:
+    name: Verify the current cinema-first API flow
+    uses: ./.github/workflows/live-api-contract-runner.yml
+    with:
+      refresh: false

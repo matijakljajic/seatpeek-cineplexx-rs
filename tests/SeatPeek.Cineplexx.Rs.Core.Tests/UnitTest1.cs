@@ -1,4 +1,4 @@
-﻿namespace Cineplexx.Core.Tests;
+﻿namespace SeatPeek.Cineplexx.Rs.Core.Tests;
 
 public class UnitTest1
 {

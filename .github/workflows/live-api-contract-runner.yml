@@ -1,0 +1,84 @@
+name: Reusable live Cineplexx API contract runner
+
+on:
+  workflow_call:
+    inputs:
+      refresh:
+        description: Whether to refresh samples and Wiki examples after the contract check succeeds.
+        required: true
+        type: boolean
+
+jobs:
+  live-api-contract:
+    name: ${{ inputs.refresh && 'Validate API and refresh samples' || 'Check live cinema-first API flow' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      RUN_LIVE_API_CONTRACT_TESTS: true
+      UPDATE_LIVE_API_SAMPLES: ${{ inputs.refresh }}
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Restore test dependencies
+        run: dotnet restore tests/SeatPeek.Cineplexx.Rs.Api.Tests/SeatPeek.Cineplexx.Rs.Api.Tests.csproj
+
+      - name: Check live API contract
+        run: >-
+          dotnet test tests/SeatPeek.Cineplexx.Rs.Api.Tests/SeatPeek.Cineplexx.Rs.Api.Tests.csproj
+          --no-restore
+          --filter 'Category=LiveApiContract'
+
+      - name: Configure commit author
+        if: inputs.refresh
+        run: |
+          git config user.name "${{ github.actor }}"
+          git config user.email "${{ github.actor_id }}+${{ github.actor }}@users.noreply.github.com"
+
+      - name: Commit refreshed samples
+        if: inputs.refresh
+        run: |
+          git add samples
+          if git diff --cached --quiet; then
+            echo "Samples already match the successful live observation."
+            exit 0
+          fi
+
+          git commit -m "chore(samples): refresh live API fixtures"
+          git push origin "HEAD:${{ github.ref_name }}"
+
+      - name: Check out wiki
+        if: inputs.refresh
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          WIKI_REPOSITORY: ${{ github.repository }}.wiki.git
+        run: |
+          git clone "https://x-access-token:${GITHUB_TOKEN}@github.com/${WIKI_REPOSITORY}" "$RUNNER_TEMP/wiki"
+
+      - name: Update wiki live examples
+        if: inputs.refresh
+        run: >-
+          node scripts/update-wiki-live-examples.mjs
+          "$RUNNER_TEMP/wiki/API-Endpoints.md"
+          samples/responses
+
+      - name: Commit refreshed wiki examples
+        if: inputs.refresh
+        run: |
+          git -C "$RUNNER_TEMP/wiki" config user.name "${{ github.actor }}"
+          git -C "$RUNNER_TEMP/wiki" config user.email "${{ github.actor_id }}+${{ github.actor }}@users.noreply.github.com"
+          git -C "$RUNNER_TEMP/wiki" add API-Endpoints.md
+
+          if git -C "$RUNNER_TEMP/wiki" diff --cached --quiet; then
+            echo "Wiki live examples already match the successful live observation."
+            exit 0
+          fi
+
+          git -C "$RUNNER_TEMP/wiki" commit -m "docs: refresh live API examples"
+          git -C "$RUNNER_TEMP/wiki" push origin HEAD:master

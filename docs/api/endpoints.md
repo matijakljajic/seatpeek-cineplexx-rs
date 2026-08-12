@@ -1,5 +1,10 @@
 # Endpoints
 
+> [!TIP]
+> The core cinema-first endpoints are also described in the
+> [OpenAPI specification](../../openapi/cineplexx-rs.yaml), which can be used
+> with OpenAPI-compatible tools for easier interactive testing.
+
 Base URL:
 
 ```text

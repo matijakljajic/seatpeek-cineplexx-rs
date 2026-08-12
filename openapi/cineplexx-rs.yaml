@@ -1,0 +1,410 @@
+openapi: 3.1.1
+
+info:
+  title: Cineplexx Serbia API
+  version: 0.1.0
+  description: |
+    Experimental OpenAPI description of the accessible, undocumented
+    Cineplexx Serbia HTTP API.
+
+    This specification intentionally focuses on the small cinema-first subset
+    that has been observed directly and is useful.
+
+    `0.1.0` is the version of this unofficial OpenAPI description, not a
+    Cineplexx API version. Cineplexx endpoints themselves have been observed
+    under prefixes such as `/v1`, `/v2`, and `/v3`.
+
+    ## Testing without stale session IDs
+
+    Session IDs are time-sensitive, so this specification intentionally does
+    not hard-code a session example.
+
+    To test the full flow using current data:
+
+    1. Call `GET /v1/locations`.
+    2. Choose a cinema from the response and copy its cinema ID.
+    3. Call `GET /v1/cinemas/{cinemaId}/sessions`.
+    4. Pick an entry from one of the returned `sessions` arrays and copy its
+       `id`. This value is the `sessionKey`, in the form
+       `{cinemaId}-{sessionId}`.
+    5. Call `GET /v1/sessions/{sessionKey}`.
+    6. From the response, copy `session.sessionId`.
+    7. Call `GET /v1/seat-plan/{cinemaId}/{sessionId}`.
+
+    This keeps the testing flow valid as cinema programmes change.
+
+    The upstream API is undocumented and may change without notice.
+
+    Content returned by the upstream API may be subject to Cineplexx terms and
+    copyright restrictions. This specification documents observed API
+    structure and behaviour only.
+  contact:
+    url: https://github.com/matijakljajic/seatpeek-cineplexx-rs
+
+externalDocs:
+  description: Human-readable API documentation
+  url: https://github.com/matijakljajic/seatpeek-cineplexx-rs/tree/main/docs/api
+
+servers:
+  - url: https://app.cineplexx.rs/api
+    description: Cineplexx Serbia API
+
+security: []
+
+tags:
+  - name: Discovery
+    description: Stable starting points for discovering live identifiers.
+  - name: Cinemas
+    description: Cinema metadata and live programmes.
+  - name: Sessions
+    description: Screening details and seat-level availability.
+
+paths:
+  /v1/locations:
+    get:
+      tags:
+        - Discovery
+      operationId: getLocations
+      summary: List locations
+      description: |
+        Returns locations and their associated cinemas.
+
+        Start here when you do not already know a current `cinemaId`.
+      responses:
+        "200":
+          description: Observed location data.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Location"
+
+  /v1/cinemas:
+    get:
+      tags:
+        - Discovery
+      operationId: getCinemas
+      summary: List cinemas
+      description: |
+        Returns Cineplexx cinema information.
+
+        This is another stable discovery endpoint for obtaining cinema IDs.
+      responses:
+        "200":
+          description: Observed cinema data.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Cinema"
+
+  /v1/cinemas/{cinemaId}:
+    get:
+      tags:
+        - Cinemas
+      operationId: getCinema
+      summary: Get cinema details
+      description: |
+        Returns information about one cinema.
+
+        Obtain a `cinemaId` from `/v1/locations` or `/v1/cinemas`.
+      parameters:
+        - $ref: "#/components/parameters/CinemaId"
+      responses:
+        "200":
+          description: Observed cinema details.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Cinema"
+
+  /v1/cinemas/{cinemaId}/sessions:
+    get:
+      tags:
+        - Cinemas
+      operationId: getCinemaSessions
+      summary: Get cinema programme
+      description: |
+        Returns the cinema programme grouped by date.
+
+        Use this endpoint to discover current session identifiers instead of
+        copying a session ID from documentation, because screenings eventually
+        expire.
+
+        Each returned day contains a `sessions` array. A session entry has
+        been observed to contain:
+
+        - `id`: the composite `sessionKey` used by
+          `GET /v1/sessions/{sessionKey}`;
+        - `technologies`: screening technologies/formats, observed as a nested
+          list of strings.
+      parameters:
+        - $ref: "#/components/parameters/CinemaId"
+      responses:
+        "200":
+          description: Programme grouped by date.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/DaySchedule"
+
+  /v1/sessions/{sessionKey}:
+    get:
+      tags:
+        - Sessions
+      operationId: getSession
+      summary: Get screening details
+      description: |
+        Returns details for one screening, including aggregate seat
+        availability and associated film information.
+
+        To obtain a current `sessionKey`:
+
+        1. Call `GET /v1/cinemas/{cinemaId}/sessions`.
+        2. Pick a session from one of the returned `sessions` arrays.
+        3. Copy that session's `id`.
+
+        The returned `session.sessionId` can then be used with the seat-plan
+        endpoint.
+      parameters:
+        - $ref: "#/components/parameters/SessionKey"
+      responses:
+        "200":
+          description: Screening details.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SessionDetailsResponse"
+
+  /v1/seat-plan/{cinemaId}/{sessionId}:
+    get:
+      tags:
+        - Sessions
+      operationId: getSeatPlan
+      summary: Get seat-level availability
+      description: |
+        Returns the seat plan for a scheduled screening.
+
+        To obtain current parameters:
+
+        1. Discover a current session through
+           `GET /v1/cinemas/{cinemaId}/sessions`.
+        2. Call `GET /v1/sessions/{sessionKey}`.
+        3. Copy `session.sessionId` from the response.
+
+        Session metadata already contains `seatsAvailable` and `seatsTotal`.
+        This endpoint is only necessary when individual seats need to be
+        inspected.
+      parameters:
+        - $ref: "#/components/parameters/CinemaId"
+        - $ref: "#/components/parameters/SessionId"
+      responses:
+        "200":
+          description: |
+            Seat-plan response. Its complete schema has not yet been
+            documented.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UndocumentedResponse"
+
+components:
+  parameters:
+    CinemaId:
+      name: cinemaId
+      in: path
+      required: true
+      description: |
+        Numeric cinema identifier.
+
+        Obtain a live value from `/v1/locations` or `/v1/cinemas`.
+      schema:
+        type: integer
+      example: 1116
+
+    SessionKey:
+      name: sessionKey
+      in: path
+      required: true
+      description: |
+        Composite screening identifier in the form
+        `{cinemaId}-{sessionId}`.
+
+        Obtain a current value by calling
+        `/v1/cinemas/{cinemaId}/sessions` and copying a returned session's
+        `id`.
+
+        No fixed example is provided because screenings expire.
+      schema:
+        type: string
+        pattern: "^[0-9]+-[0-9]+$"
+
+    SessionId:
+      name: sessionId
+      in: path
+      required: true
+      description: |
+        Numeric screening identifier.
+
+        Obtain a current value from `session.sessionId` returned by
+        `/v1/sessions/{sessionKey}`.
+
+        No fixed example is provided because screenings expire.
+      schema:
+        type: integer
+
+  schemas:
+    Location:
+      type: object
+      description: |
+        Location object returned by `/v1/locations`.
+
+        The complete upstream schema has not yet been documented, so unknown
+        fields are intentionally accepted.
+      additionalProperties: true
+
+    Cinema:
+      type: object
+      description: |
+        Cinema object.
+
+        Only fields understood well enough to document are described here.
+        Unknown upstream fields are intentionally accepted.
+      properties:
+        id:
+          description: Cinema identifier when present.
+          oneOf:
+            - type: integer
+            - type: string
+      additionalProperties: true
+
+    DaySchedule:
+      type: object
+      description: Programme entry containing sessions for one date.
+      properties:
+        date:
+          type: string
+          description: Programme date as returned by Cineplexx.
+        sessions:
+          type: array
+          description: Sessions scheduled for this date.
+          items:
+            $ref: "#/components/schemas/ScheduleSession"
+      additionalProperties: true
+
+    ScheduleSession:
+      type: object
+      description: |
+        Lightweight session entry returned by the cinema programme endpoint.
+      properties:
+        id:
+          type: string
+          description: |
+            Composite session key used by
+            `GET /v1/sessions/{sessionKey}`.
+          pattern: "^[0-9]+-[0-9]+$"
+        technologies:
+          type: array
+          description: |
+            Screening technologies/formats.
+
+            This field has been observed as a nested list of strings.
+          items:
+            type: array
+            items:
+              type: string
+      additionalProperties: true
+
+    SessionDetailsResponse:
+      type: object
+      description: |
+        Wrapper containing screening data and the associated scheduled film.
+      properties:
+        session:
+          $ref: "#/components/schemas/Session"
+        scheduledFilm:
+          $ref: "#/components/schemas/ScheduledFilm"
+      additionalProperties: true
+
+    Session:
+      type: object
+      description: |
+        Screening metadata returned inside a session-detail response.
+
+        Unknown upstream fields are intentionally accepted.
+      properties:
+        id:
+          type: string
+          description: Composite session key when present.
+        sessionId:
+          description: Numeric screening identifier.
+          oneOf:
+            - type: integer
+            - type: string
+        cinemaId:
+          description: Cinema identifier.
+          oneOf:
+            - type: integer
+            - type: string
+        movieId:
+          type: string
+          description: Cineplexx movie identifier.
+        showtime:
+          type: string
+          description: Screening start time as returned by Cineplexx.
+        status:
+          type: string
+          description: Screening status as returned by Cineplexx.
+        seatsAvailable:
+          type: integer
+          minimum: 0
+          description: Number of seats currently reported as available.
+        seatsTotal:
+          type: integer
+          minimum: 0
+          description: Total number of seats reported for the screening.
+        screenName:
+          type: string
+          description: Human-readable auditorium/screen name when present.
+        screenNumber:
+          description: Screen number when present.
+          oneOf:
+            - type: integer
+            - type: string
+        sessionAttributesNames:
+          type: array
+          description: Human-readable session attributes when present.
+          items:
+            type: string
+        allowTicketSales:
+          type: boolean
+          description: Whether ticket sales are reported as allowed.
+      additionalProperties: true
+
+    ScheduledFilm:
+      type: object
+      description: |
+        Film information associated with the screening.
+
+        Unknown upstream fields are intentionally accepted.
+      properties:
+        title:
+          type: string
+          description: Film title.
+        duration:
+          description: Film duration as returned by Cineplexx.
+          oneOf:
+            - type: integer
+            - type: string
+      additionalProperties: true
+
+    UndocumentedResponse:
+      description: |
+        Response whose complete schema has not yet been documented.
+
+        No `type` is declared intentionally so the specification does not make
+        an unsupported assumption about the upstream response shape.

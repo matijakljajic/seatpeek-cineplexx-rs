@@ -4,11 +4,13 @@ info:
   title: Cineplexx Serbia API
   version: 0.1.0
   description: |
-    Experimental OpenAPI description of the accessible, undocumented
+    Experimental OpenAPI description of the accessible but undocumented
     Cineplexx Serbia HTTP API.
 
     This specification intentionally focuses on the small cinema-first subset
-    that has been observed directly and is useful.
+    that has been observed directly and is useful for my personal client.
+
+    ## API "versions" and OpenAPI description version
 
     `0.1.0` is the version of this unofficial OpenAPI description, not a
     Cineplexx API version. Cineplexx endpoints themselves have been observed
@@ -17,7 +19,9 @@ info:
     ## Testing without stale session IDs
 
     Session IDs are time-sensitive, so this specification intentionally does
-    not hard-code a session example.
+    not hard-code a session example. You may use possibly fresh data from
+    `/samples` which is located at:
+    https://github.com/matijakljajic/seatpeek-cineplexx-rs/tree/main/samples
 
     To test the full flow using current data:
 
@@ -33,7 +37,7 @@ info:
 
     This keeps the testing flow valid as cinema programmes change.
 
-    The upstream API is undocumented and may change without notice.
+    The upstream API may change without notice.
 
     Content returned by the upstream API may be subject to Cineplexx terms and
     copyright restrictions. This specification documents observed API
@@ -43,7 +47,7 @@ info:
 
 externalDocs:
   description: Human-readable API documentation
-  url: https://github.com/matijakljajic/seatpeek-cineplexx-rs/tree/main/docs/api
+  url: https://github.com/matijakljajic/seatpeek-cineplexx-rs/wiki
 
 servers:
   - url: https://app.cineplexx.rs/api
@@ -204,13 +208,11 @@ paths:
         - $ref: "#/components/parameters/SessionId"
       responses:
         "200":
-          description: |
-            Seat-plan response. Its complete schema has not yet been
-            documented.
+          description: Observed seat-plan response.
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/UndocumentedResponse"
+                $ref: "#/components/schemas/SeatPlan"
 
 components:
   parameters:
@@ -223,8 +225,9 @@ components:
 
         Obtain a live value from `/v1/locations` or `/v1/cinemas`.
       schema:
-        type: integer
-      example: 1116
+        type: string
+        pattern: "^[0-9]+$"
+      example: "1116"
 
     SessionKey:
       name: sessionKey
@@ -255,16 +258,28 @@ components:
 
         No fixed example is provided because screenings expire.
       schema:
-        type: integer
+        type: string
+        pattern: "^[0-9]+$"
 
   schemas:
     Location:
       type: object
-      description: |
-        Location object returned by `/v1/locations`.
-
-        The complete upstream schema has not yet been documented, so unknown
-        fields are intentionally accepted.
+      description: Location object returned by `/v1/locations`.
+      properties:
+        id:
+          type: number
+          description: Location identifier as returned by Cineplexx.
+        name:
+          type: string
+          description: Location name.
+        items:
+          type: array
+          description: Numeric cinema IDs associated with this location.
+          items:
+            type: number
+        stateId:
+          type: string
+          description: State identifier as returned by Cineplexx.
       additionalProperties: true
 
     Cinema:
@@ -276,10 +291,33 @@ components:
         Unknown upstream fields are intentionally accepted.
       properties:
         id:
-          description: Cinema identifier when present.
-          oneOf:
-            - type: integer
-            - type: string
+          type: string
+          pattern: "^[0-9]+$"
+          description: Cinema identifier.
+        name:
+          type: string
+          description: Cinema name.
+        cinemaUrlName:
+          type: string
+          description: Cinema URL name as returned by Cineplexx.
+        address1:
+          type: string
+          description: First address line.
+        address2:
+          type: string
+          description: Second address line.
+        geo:
+          $ref: "#/components/schemas/GeoCoordinates"
+      additionalProperties: true
+
+    GeoCoordinates:
+      type: object
+      description: Geographic coordinates returned for a cinema.
+      properties:
+        latitude:
+          type: number
+        longitude:
+          type: number
       additionalProperties: true
 
     DaySchedule:
@@ -307,6 +345,23 @@ components:
             Composite session key used by
             `GET /v1/sessions/{sessionKey}`.
           pattern: "^[0-9]+-[0-9]+$"
+        cinemaId:
+          type: string
+          pattern: "^[0-9]+$"
+          description: Cinema identifier.
+        movieId:
+          type: string
+          description: Cineplexx movie identifier.
+        sessionId:
+          type: string
+          pattern: "^[0-9]+$"
+          description: Screening identifier.
+        screenName:
+          type: string
+          description: Auditorium/screen name.
+        screenNumber:
+          type: number
+          description: Auditorium/screen number.
         technologies:
           type: array
           description: |
@@ -317,6 +372,15 @@ components:
             type: array
             items:
               type: string
+        showtime:
+          type: string
+          description: Screening start time as returned by Cineplexx.
+        isAllocatedSeating:
+          type: boolean
+          description: Whether the screening has allocated seating.
+        status:
+          type: string
+          description: Screening status as returned by Cineplexx.
       additionalProperties: true
 
     SessionDetailsResponse:
@@ -339,17 +403,16 @@ components:
       properties:
         id:
           type: string
-          description: Composite session key when present.
+          pattern: "^[0-9]+-[0-9]+$"
+          description: Composite session key.
         sessionId:
+          type: string
+          pattern: "^[0-9]+$"
           description: Numeric screening identifier.
-          oneOf:
-            - type: integer
-            - type: string
         cinemaId:
+          type: string
+          pattern: "^[0-9]+$"
           description: Cinema identifier.
-          oneOf:
-            - type: integer
-            - type: string
         movieId:
           type: string
           description: Cineplexx movie identifier.
@@ -371,10 +434,8 @@ components:
           type: string
           description: Human-readable auditorium/screen name when present.
         screenNumber:
+          type: number
           description: Screen number when present.
-          oneOf:
-            - type: integer
-            - type: string
         sessionAttributesNames:
           type: array
           description: Human-readable session attributes when present.
@@ -383,6 +444,13 @@ components:
         allowTicketSales:
           type: boolean
           description: Whether ticket sales are reported as allowed.
+        technologies:
+          type: array
+          description: Screening technologies/formats as returned by Cineplexx.
+          items:
+            type: array
+            items:
+              type: string
       additionalProperties: true
 
     ScheduledFilm:
@@ -392,19 +460,175 @@ components:
 
         Unknown upstream fields are intentionally accepted.
       properties:
+        id:
+          type: string
+          description: Scheduled-film identifier.
+        scheduledFilmId:
+          type: string
+          description: Cineplexx scheduled-film identifier.
+        cinemaId:
+          type: string
+          pattern: "^[0-9]+$"
+          description: Cinema identifier.
         title:
           type: string
           description: Film title.
         duration:
+          type: string
           description: Film duration as returned by Cineplexx.
-          oneOf:
-            - type: integer
-            - type: string
+        film:
+          $ref: "#/components/schemas/FilmReference"
       additionalProperties: true
 
-    UndocumentedResponse:
+    FilmReference:
+      type: object
       description: |
-        Response whose complete schema has not yet been documented.
+        Nested film reference in the raw session-details response. The sample
+        fixture's `slug` is derived from `film.shortURL` and is not an
+        upstream `ScheduledFilm` field. (todo: this needs to double checked)
+      properties:
+        shortURL:
+          type: string
+          description: Film URL slug as returned by Cineplexx.
+      additionalProperties: true
 
-        No `type` is declared intentionally so the specification does not make
-        an unsupported assumption about the upstream response shape.
+    SeatPlan:
+      type: object
+      description: Seat-plan response returned for a scheduled screening.
+      properties:
+        rowsMax:
+          type: number
+          description: Maximum row count as returned by Cineplexx.
+        seatPlanSaved:
+          type: string
+          description: Seat-plan saved value as returned by Cineplexx.
+        rows:
+          type: array
+          items:
+            $ref: "#/components/schemas/SeatRow"
+        icons:
+          type: array
+          items:
+            $ref: "#/components/schemas/SeatIcon"
+      additionalProperties: true
+
+    SeatRow:
+      type: object
+      description: Row in a Cineplexx seat plan.
+      properties:
+        physicalName:
+          type: string
+          description: Physical row label.
+        number:
+          type: number
+          description: Row number as returned by Cineplexx.
+        areaCategoryCode:
+          type: string
+          description: Area category code as returned by Cineplexx.
+        description:
+          type: string
+          description: Row/auditorium description as returned by Cineplexx.
+        right:
+          type: number
+          description: Row right position as returned by Cineplexx.
+        bottom:
+          type: number
+          description: Row bottom position as returned by Cineplexx.
+        height:
+          type: number
+          description: Row height as returned by Cineplexx.
+        columnCount:
+          type: number
+          description: Number of columns in the row.
+        seats:
+          type: array
+          items:
+            $ref: "#/components/schemas/Seat"
+      additionalProperties: true
+
+    Seat:
+      type: object
+      description: Seat in a Cineplexx seat plan.
+      properties:
+        columnIndex:
+          type: number
+          description: Seat column index as returned by Cineplexx.
+        statusCalculated:
+          type: number
+          description: Seat status value as returned by Cineplexx.
+        doubleSeatId:
+          type: string
+          description: Double-seat identifier as returned by Cineplexx.
+        position:
+          $ref: "#/components/schemas/SeatPosition"
+        id:
+          type: string
+          description: Seat identifier or label as returned by Cineplexx.
+        status:
+          type: number
+          description: Seat status value as returned by Cineplexx.
+        seatStyle:
+          type: number
+          description: Seat style value as returned by Cineplexx.
+        seatsInGroup:
+          type: array
+          description: Grouped-seat values as returned by Cineplexx.
+          items: {}
+        originalStatus:
+          type: number
+          description: Seat status value as returned by Cineplexx.
+        seatIconId:
+          type: number
+          description: Seat icon identifier as returned by Cineplexx.
+        seatImprovedIconId:
+          type: number
+          description: Improved seat icon identifier as returned by Cineplexx.
+        areaCategoryCode:
+          type: string
+          description: Area category code as returned by Cineplexx.
+        rowName:
+          type: string
+          description: Row label as returned by Cineplexx.
+        normalizedRowIndex:
+          type: number
+          description: Normalized row index as returned by Cineplexx.
+        rowRight:
+          type: number
+          description: Row right position as returned by Cineplexx.
+        normalizedColumnIndex:
+          type: number
+          description: Normalized column index as returned by Cineplexx.
+      additionalProperties: true
+
+    SeatPosition:
+      type: object
+      description: Position data for a seat.
+      properties:
+        rowIndex:
+          type: number
+          description: Row index as returned by Cineplexx.
+        columnIndex:
+          type: number
+          description: Column index as returned by Cineplexx.
+        areaNumber:
+          type: number
+          description: Area number as returned by Cineplexx.
+        columnIndexVista:
+          type: number
+          description: Vista column index as returned by Cineplexx.
+        columnIndexRender:
+          type: number
+          description: Render column index as returned by Cineplexx.
+      additionalProperties: true
+
+    SeatIcon:
+      type: object
+      description: Seat icon referenced by a seat plan.
+      properties:
+        id:
+          type: number
+          description: Seat icon identifier.
+        imageUrl:
+          type: string
+          description: Image path as returned by Cineplexx.
+      additionalProperties: true

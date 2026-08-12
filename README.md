@@ -4,8 +4,12 @@
 
 ## Documentation
 
-The Cineplexx Serbia API documentation is maintained in the [project wiki](https://github.com/matijakljajic/seatpeek-cineplexx-rs/wiki).
+The human-readable documentation for undocumented Cineplexx Serbia API is maintained in the [project Wiki](https://github.com/matijakljajic/seatpeek-cineplexx-rs/wiki). The core cinema-first flow is also described by the [OpenAPI specification](openapi/cineplexx-rs.yaml), which is based on the [observed response samples](samples/responses/).
+
+The samples and Wiki examples can be refreshed after a successful live contract check with the [manual refresh workflow](.github/workflows/refresh-live-api-samples.yml). They are observations after an expectation test passes.
 
 ## License
 
 Code in this repository is licensed under the AGPLv3 License - see the [LICENSE](LICENSE) file for details.
+
+Cineplexx Serbia API responses and related upstream content are authored by Cineplexx and their respective rights holders; this repository does not claim authorship of them.

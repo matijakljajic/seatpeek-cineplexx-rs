@@ -1,6 +1,6 @@
 [
   {
-    "date": "2026-08-12T00:00:00+02:00",
+    "date": "2026-08-12T00:00:00\u002B02:00",
     "sessions": [
       {
         "id": "1111-70992",
@@ -16,7 +16,7 @@
           ],
           []
         ],
-        "showtime": "2026-08-12T16:30:00+02:00",
+        "showtime": "2026-08-12T16:30:00\u002B02:00",
         "isAllocatedSeating": true,
         "status": "grey"
       },
@@ -34,7 +34,7 @@
           ],
           []
         ],
-        "showtime": "2026-08-12T15:45:00+02:00",
+        "showtime": "2026-08-12T15:45:00\u002B02:00",
         "isAllocatedSeating": true,
         "status": "grey"
       }
